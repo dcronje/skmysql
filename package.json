@@ -4,7 +4,6 @@
   "description": "Skunworks mysql library based of node mysql with event listening capabilities",
   "main": "index.js",
   "scripts": {
-    "postinstall": "babel src/ -d build/ -s",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "babel src/ -d build/ -s"
   },
