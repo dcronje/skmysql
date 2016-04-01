@@ -170,15 +170,51 @@ class SkPool extends Pool {
   }
 
   //TODO: move to promise!!
-  watch(tables) {
+  watch(tables = false) {
     return new Promise((resolve, reject) => {
-      if (tables instanceof String) {
-        var temp = tables;
-        tables = [];
-        tables.push(temp);
-      }
-      Promise.each(tables, (table) => {
-        return this.watchTable(table);
+      Promise.resolve()
+      .then(() => {
+        if (!tables) {
+          tables = [];
+          return new Promise((resolve, reject) => {
+            this.getConnectionAsync()
+            .then(con => {
+              var qry = `SHOW TABLES`;
+              con.getAllAsync(qry)
+              .then(dbTables => {
+                for (var t = 0; t < dbTables.length; t ++) {
+                  var tableName = false;
+                  _.each(dbTables[t], (val, key) => {
+                    if (key.match(/^Tables_in_.*$/) && val.indexOf('!') == -1) {
+                      tableName = val;
+                    }
+                  });
+                  if (tableName) {
+                    tables.push(tableName);
+                  }
+                }
+                resolve(tables);
+              })
+              .catch(reject)
+              .finally(() => {
+                con.release();
+              });
+            })
+            .catch(reject);
+          })
+        } else {
+          if (tables instanceof String) {
+            var temp = tables;
+            tables = [];
+            tables.push(temp);
+          }
+          return Promise.resolve(tables);
+        }
+      })
+      .then(tables => {
+        return Promise.each(tables, (table) => {
+          return this.watchTable(table);
+        })
       })
       .then(() => {
         resolve();

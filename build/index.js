@@ -265,17 +265,48 @@ var SkPool = function (_Pool) {
 
   _createClass(SkPool, [{
     key: 'watch',
-    value: function watch(tables) {
+    value: function watch() {
       var _this9 = this;
 
+      var tables = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+
       return new _bluebird2.default(function (resolve, reject) {
-        if (tables instanceof String) {
-          var temp = tables;
-          tables = [];
-          tables.push(temp);
-        }
-        _bluebird2.default.each(tables, function (table) {
-          return _this9.watchTable(table);
+        _bluebird2.default.resolve().then(function () {
+          if (!tables) {
+            tables = [];
+            return new _bluebird2.default(function (resolve, reject) {
+              _this9.getConnectionAsync().then(function (con) {
+                var qry = 'SHOW TABLES';
+                con.getAllAsync(qry).then(function (dbTables) {
+                  for (var t = 0; t < dbTables.length; t++) {
+                    var tableName = false;
+                    _.each(dbTables[t], function (val, key) {
+                      if (key.match(/^Tables_in_.*$/) && val.indexOf('!') == -1) {
+                        tableName = val;
+                      }
+                    });
+                    if (tableName) {
+                      tables.push(tableName);
+                    }
+                  }
+                  resolve(tables);
+                }).catch(reject).finally(function () {
+                  con.release();
+                });
+              }).catch(reject);
+            });
+          } else {
+            if (tables instanceof String) {
+              var temp = tables;
+              tables = [];
+              tables.push(temp);
+            }
+            return _bluebird2.default.resolve(tables);
+          }
+        }).then(function (tables) {
+          return _bluebird2.default.each(tables, function (table) {
+            return _this9.watchTable(table);
+          });
         }).then(function () {
           resolve();
         }).catch(reject);
