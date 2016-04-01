@@ -9,6 +9,7 @@ import PoolCluster from 'mysql/lib/PoolCluster';
 import PoolConnection from 'mysql/lib/PoolConnection';
 import SkTableWatcher from './lib/sktablewatcher';
 import SkMysqlSanitizer from './lib/skmysqlsanitizer';
+import * as _ from 'underscore';
 
 class SkConnection extends Connection {
 
@@ -169,8 +170,30 @@ class SkPool extends Pool {
   }
 
   //TODO: move to promise!!
-  watch(table, callback, startupCallback) {
-  	var watcher;
+  watch(tables) {
+    if (tables instanceof String) {
+      var temp = tables;
+      tables = [];
+      tables.push(temp);
+    }
+    _.each(tables, (table) => {
+      this.watchTable(table);
+    });
+  }
+
+  unwatch(tables) {
+    if (tables instanceof String) {
+      var temp = tables;
+      tables = [];
+      tables.push(temp);
+    }
+    _.each(tables, (table) => {
+      this.unwatchTable(table);
+    });
+  }
+
+  watchTable(table) {
+    var watcher;
   	if (this.watchList[table] === undefined) {
   		watcher = new SkTableWatcher(table, this);
   		this.watchList[table] = watcher;
@@ -189,22 +212,17 @@ class SkPool extends Pool {
           this.emit('error', data);
         });
       });
-  	} else {
-  		watcher = this.watchList[table];
-      watcher.on('insert', (data) => {
-        this.emit('insert', data);
-      });
-      watcher.on('update', (data) => {
-        this.emit('update', data);
-      });
-      watcher.on('delete', (data) => {
-        this.emit('delete', data);
-      });
-      watcher.on('error', (data) => {
-        this.emit('error', data);
+  	}
+  }
+
+  unwatchTable(table) {
+    var watcher;
+  	if (this.watchList[table] !== undefined) {
+  		this.watchList[table].stopPolling()
+      .then(() => {
+        delete this.watchList[table];
       });
   	}
-
   }
 
   getConnection(data, cb) {

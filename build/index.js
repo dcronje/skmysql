@@ -53,6 +53,12 @@ var _skmysqlsanitizer = require('./lib/skmysqlsanitizer');
 
 var _skmysqlsanitizer2 = _interopRequireDefault(_skmysqlsanitizer);
 
+var _underscore = require('underscore');
+
+var _ = _interopRequireWildcard(_underscore);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -259,8 +265,36 @@ var SkPool = function (_Pool) {
 
   _createClass(SkPool, [{
     key: 'watch',
-    value: function watch(table, callback, startupCallback) {
+    value: function watch(tables) {
       var _this9 = this;
+
+      if (tables instanceof String) {
+        var temp = tables;
+        tables = [];
+        tables.push(temp);
+      }
+      _.each(tables, function (table) {
+        _this9.watchTable(table);
+      });
+    }
+  }, {
+    key: 'unwatch',
+    value: function unwatch(tables) {
+      var _this10 = this;
+
+      if (tables instanceof String) {
+        var temp = tables;
+        tables = [];
+        tables.push(temp);
+      }
+      _.each(tables, function (table) {
+        _this10.unwatchTable(table);
+      });
+    }
+  }, {
+    key: 'watchTable',
+    value: function watchTable(table) {
+      var _this11 = this;
 
       var watcher;
       if (this.watchList[table] === undefined) {
@@ -268,31 +302,29 @@ var SkPool = function (_Pool) {
         this.watchList[table] = watcher;
         watcher.startPolling().then(function () {
           watcher.on('insert', function (data) {
-            _this9.emit('insert', data);
+            _this11.emit('insert', data);
           });
           watcher.on('update', function (data) {
-            _this9.emit('update', data);
+            _this11.emit('update', data);
           });
           watcher.on('delete', function (data) {
-            _this9.emit('delete', data);
+            _this11.emit('delete', data);
           });
           watcher.on('error', function (data) {
-            _this9.emit('error', data);
+            _this11.emit('error', data);
           });
         });
-      } else {
-        watcher = this.watchList[table];
-        watcher.on('insert', function (data) {
-          _this9.emit('insert', data);
-        });
-        watcher.on('update', function (data) {
-          _this9.emit('update', data);
-        });
-        watcher.on('delete', function (data) {
-          _this9.emit('delete', data);
-        });
-        watcher.on('error', function (data) {
-          _this9.emit('error', data);
+      }
+    }
+  }, {
+    key: 'unwatchTable',
+    value: function unwatchTable(table) {
+      var _this12 = this;
+
+      var watcher;
+      if (this.watchList[table] !== undefined) {
+        this.watchList[table].stopPolling().then(function () {
+          delete _this12.watchList[table];
         });
       }
     }
@@ -369,10 +401,10 @@ var SkPool = function (_Pool) {
   }, {
     key: 'getConnectionAsync',
     value: function getConnectionAsync(data, cb) {
-      var _this10 = this;
+      var _this13 = this;
 
       return new _bluebird2.default(function (resolve, reject) {
-        _this10.getConnection(data, function (err, connection) {
+        _this13.getConnection(data, function (err, connection) {
           if (err) {
             reject(err);
           } else {
@@ -384,10 +416,10 @@ var SkPool = function (_Pool) {
   }, {
     key: 'endAsync',
     value: function endAsync(cb) {
-      var _this11 = this;
+      var _this14 = this;
 
       return new _bluebird2.default(function (resolve, reject) {
-        _this11.end(function (err) {
+        _this14.end(function (err) {
           if (err) {
             reject(err);
           } else {
