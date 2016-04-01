@@ -268,13 +268,17 @@ var SkPool = function (_Pool) {
     value: function watch(tables) {
       var _this9 = this;
 
-      if (tables instanceof String) {
-        var temp = tables;
-        tables = [];
-        tables.push(temp);
-      }
-      _.each(tables, function (table) {
-        _this9.watchTable(table);
+      return new _bluebird2.default(function (resolve, reject) {
+        if (tables instanceof String) {
+          var temp = tables;
+          tables = [];
+          tables.push(temp);
+        }
+        _bluebird2.default.each(tables, function (table) {
+          return _this9.watchTable(table);
+        }).then(function () {
+          resolve();
+        }).catch(reject);
       });
     }
   }, {
@@ -282,13 +286,17 @@ var SkPool = function (_Pool) {
     value: function unwatch(tables) {
       var _this10 = this;
 
-      if (tables instanceof String) {
-        var temp = tables;
-        tables = [];
-        tables.push(temp);
-      }
-      _.each(tables, function (table) {
-        _this10.unwatchTable(table);
+      return new _bluebird2.default(function (resolve, reject) {
+        if (tables instanceof String) {
+          var temp = tables;
+          tables = [];
+          tables.push(temp);
+        }
+        _bluebird2.default.each(tables, function (table) {
+          return _this10.unwatchTable(table);
+        }).then(function () {
+          resolve();
+        }).catch(reject);
       });
     }
   }, {
@@ -296,37 +304,45 @@ var SkPool = function (_Pool) {
     value: function watchTable(table) {
       var _this11 = this;
 
-      var watcher;
-      if (this.watchList[table] === undefined) {
-        watcher = new _sktablewatcher2.default(table, this);
-        this.watchList[table] = watcher;
-        watcher.startPolling().then(function () {
-          watcher.on('insert', function (data) {
-            _this11.emit('insert', data);
-          });
-          watcher.on('update', function (data) {
-            _this11.emit('update', data);
-          });
-          watcher.on('delete', function (data) {
-            _this11.emit('delete', data);
-          });
-          watcher.on('error', function (data) {
-            _this11.emit('error', data);
-          });
-        });
-      }
+      return new _bluebird2.default(function (resolve, reject) {
+        var watcher;
+        if (_this11.watchList[table] === undefined) {
+          watcher = new _sktablewatcher2.default(table, _this11);
+          _this11.watchList[table] = watcher;
+          watcher.startPolling().then(function () {
+            watcher.on('insert', function (data) {
+              _this11.emit('insert', data);
+            });
+            watcher.on('update', function (data) {
+              _this11.emit('update', data);
+            });
+            watcher.on('delete', function (data) {
+              _this11.emit('delete', data);
+            });
+            watcher.on('error', function (data) {
+              _this11.emit('error', data);
+            });
+            resolve();
+          }).catch(reject);
+        } else {
+          resolve();
+        }
+      });
     }
   }, {
     key: 'unwatchTable',
     value: function unwatchTable(table) {
       var _this12 = this;
 
-      var watcher;
-      if (this.watchList[table] !== undefined) {
-        this.watchList[table].stopPolling().then(function () {
-          delete _this12.watchList[table];
-        });
-      }
+      return new _bluebird2.default(function (resolve, reject) {
+        var watcher;
+        if (_this12.watchList[table] !== undefined) {
+          _this12.watchList[table].stopPolling().then(function () {
+            delete _this12.watchList[table];
+            resolve();
+          }).catch(reject);
+        }
+      });
     }
   }, {
     key: 'getConnection',
@@ -419,12 +435,26 @@ var SkPool = function (_Pool) {
       var _this14 = this;
 
       return new _bluebird2.default(function (resolve, reject) {
-        _this14.end(function (err) {
-          if (err) {
-            reject(err);
+        _bluebird2.default.resolve().then(function () {
+          if (Object.keys(_this14.watchList).length) {
+            return new _bluebird2.default(function (resolve, reject) {
+              _bluebird2.default.each(Object.keys(_this14.watchList), function (table) {
+                return _this14.unwatchTable(table);
+              }).then(function () {
+                resolve();
+              }).catch(reject);
+            });
           } else {
-            resolve();
+            return _bluebird2.default.resolve();
           }
+        }).then(function () {
+          _this14.end(function (err) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
         });
       });
     }

@@ -103,6 +103,7 @@ var SkTableWatcher = function (_EventEmitter) {
 								}
 								var connectionData = JSON.parse(updates[r].connection_data);
 								var callbackObject = {
+									table: _this4.table,
 									actionType: updates[r].action_type.toLowerCase(),
 									actionTime: updates[r].action_time,
 									oldData: oldData,
@@ -144,6 +145,11 @@ var SkTableWatcher = function (_EventEmitter) {
 			var _this6 = this;
 
 			return new _bluebird2.default(function (resolve, reject) {
+				// var qry = `SHOW TABLES`;
+				// con.getAll(qry)
+				// .then(tables => {
+				// 	//check for foreignt
+				// })
 				var qry = 'SHOW CREATE TABLE `' + _this6.table + '`';
 				//console.log(qry);
 				con.getRowAsync(qry).then(function (tableData) {
@@ -152,10 +158,12 @@ var SkTableWatcher = function (_EventEmitter) {
 					tables[_this6.table] = [];
 					tables[_this6.table][0] = { type: 'watch' };
 					var tableInfo = tableData['Create Table'].split("\n");
+					//console.log(tableInfo);
 					for (var i = 0; i < tableInfo.length; i++) {
 						if (tableInfo[i].match(/.*CONSTRAINT.*FOREIGN\sKEY.*ON\sDELETE.*/)) {
 							var matches = tableInfo[i].match(/.*CONSTRAINT\s`(.*?)`\sFOREIGN\sKEY\s\(`(.*?)`\)\sREFERENCES\s`(.*?)`\s\(`(.*?)`\).*/);
 							//console.log(matches);
+							//process.exit();
 
 							//TODO: check all tables for foreign keys to this table then add a trigger to that table,
 							//DONOT FORGET: to check the registration table to see what other foreign table are watching that table and modify registration to deal with it.
@@ -186,6 +194,7 @@ var SkTableWatcher = function (_EventEmitter) {
 						}).spread(function (cols, result) {
 							var qry = "";
 							qry = "CREATE TRIGGER `!skmysql_" + _this6.table + "_insert_trigger` ";
+							qry += "-- SKTRIGGERINFO: [INFO GOES HERE]";
 							qry += "\nAFTER INSERT ON `" + _this6.table + "`";
 							qry += "\n\tFOR EACH ROW BEGIN";
 							qry += "\n\tDECLARE CONTINUE HANDLER FOR 1054";
@@ -216,6 +225,7 @@ var SkTableWatcher = function (_EventEmitter) {
 						}).spread(function (cols, result) {
 							var qry = "";
 							qry = "\nCREATE TRIGGER `!skmysql_" + _this6.table + "_update_trigger` ";
+							qry += "-- SKTRIGGERINFO: [INFO GOES HERE]";
 							qry += "\nAFTER UPDATE ON `" + _this6.table + "`";
 							qry += "\n\tFOR EACH ROW BEGIN";
 							qry += "\n\tDECLARE CONTINUE HANDLER FOR 1054";
@@ -257,6 +267,7 @@ var SkTableWatcher = function (_EventEmitter) {
 						}).spread(function (cols, result) {
 							var qry = "";
 							qry = "\nCREATE TRIGGER `!skmysql_" + _this6.table + "_delete_trigger` ";
+							qry += "-- SKTRIGGERINFO: [INFO GOES HERE]";
 							qry += "\nBEFORE DELETE ON `" + _this6.table + "`";
 							qry += "\n\tFOR EACH ROW BEGIN";
 							qry += "\n\tDECLARE CONTINUE HANDLER FOR 1054";

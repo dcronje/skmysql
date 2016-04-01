@@ -171,58 +171,80 @@ class SkPool extends Pool {
 
   //TODO: move to promise!!
   watch(tables) {
-    if (tables instanceof String) {
-      var temp = tables;
-      tables = [];
-      tables.push(temp);
-    }
-    _.each(tables, (table) => {
-      this.watchTable(table);
+    return new Promise((resolve, reject) => {
+      if (tables instanceof String) {
+        var temp = tables;
+        tables = [];
+        tables.push(temp);
+      }
+      Promise.each(tables, (table) => {
+        return this.watchTable(table);
+      })
+      .then(() => {
+        resolve();
+      })
+      .catch(reject);
     });
   }
 
   unwatch(tables) {
-    if (tables instanceof String) {
-      var temp = tables;
-      tables = [];
-      tables.push(temp);
-    }
-    _.each(tables, (table) => {
-      this.unwatchTable(table);
+    return new Promise((resolve, reject) => {
+      if (tables instanceof String) {
+        var temp = tables;
+        tables = [];
+        tables.push(temp);
+      }
+      Promise.each(tables, (table) => {
+        return this.unwatchTable(table);
+      })
+      .then(() => {
+        resolve();
+      })
+      .catch(reject);
     });
   }
 
   watchTable(table) {
-    var watcher;
-  	if (this.watchList[table] === undefined) {
-  		watcher = new SkTableWatcher(table, this);
-  		this.watchList[table] = watcher;
-      watcher.startPolling()
-      .then(() => {
-        watcher.on('insert', (data) => {
-          this.emit('insert', data);
-        });
-        watcher.on('update', (data) => {
-          this.emit('update', data);
-        });
-        watcher.on('delete', (data) => {
-          this.emit('delete', data);
-        });
-        watcher.on('error', (data) => {
-          this.emit('error', data);
-        });
-      });
-  	}
+    return new Promise((resolve, reject) => {
+      var watcher;
+    	if (this.watchList[table] === undefined) {
+    		watcher = new SkTableWatcher(table, this);
+    		this.watchList[table] = watcher;
+        watcher.startPolling()
+        .then(() => {
+          watcher.on('insert', (data) => {
+            this.emit('insert', data);
+          });
+          watcher.on('update', (data) => {
+            this.emit('update', data);
+          });
+          watcher.on('delete', (data) => {
+            this.emit('delete', data);
+          });
+          watcher.on('error', (data) => {
+            this.emit('error', data);
+          });
+          resolve();
+        })
+        .catch(reject);
+    	} else {
+        resolve();
+      }
+    });
   }
 
   unwatchTable(table) {
-    var watcher;
-  	if (this.watchList[table] !== undefined) {
-  		this.watchList[table].stopPolling()
-      .then(() => {
-        delete this.watchList[table];
-      });
-  	}
+    return new Promise((resolve, reject) => {
+      var watcher;
+    	if (this.watchList[table] !== undefined) {
+    		this.watchList[table].stopPolling()
+        .then(() => {
+          delete this.watchList[table];
+          resolve();
+        })
+        .catch(reject);
+    	}
+    });
   }
 
   getConnection(data, cb) {
@@ -308,13 +330,31 @@ class SkPool extends Pool {
 
   endAsync(cb) {
     return new Promise((resolve, reject) => {
-      this.end((err) => {
-        if (err) {
-          reject(err);
+      Promise.resolve()
+      .then(() => {
+        if (Object.keys(this.watchList).length) {
+          return new Promise((resolve, reject) => {
+            Promise.each(Object.keys(this.watchList), (table) => {
+              return this.unwatchTable(table);
+            })
+            .then(() => {
+              resolve();
+            })
+            .catch(reject);
+          });
         } else {
-          resolve();
+          return Promise.resolve();
         }
-      });
+      })
+      .then(() => {
+        this.end((err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      })
     });
   }
 }

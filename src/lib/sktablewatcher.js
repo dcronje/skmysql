@@ -78,6 +78,7 @@ class SkTableWatcher extends EventEmitter {
 							}
 							var connectionData = JSON.parse(updates[r].connection_data);
 							var callbackObject = {
+								table: this.table,
 								actionType: updates[r].action_type.toLowerCase(),
 								actionTime: updates[r].action_time,
 								oldData: oldData,
@@ -119,6 +120,11 @@ class SkTableWatcher extends EventEmitter {
 
 	createTrigger(con) {
 		return new Promise((resolve, reject) => {
+			// var qry = `SHOW TABLES`;
+			// con.getAll(qry)
+			// .then(tables => {
+			// 	//check for foreignt
+			// })
 			var qry = `SHOW CREATE TABLE \`${this.table}\``;
 			//console.log(qry);
 			con.getRowAsync(qry)
@@ -128,10 +134,12 @@ class SkTableWatcher extends EventEmitter {
 				tables[this.table] = [];
 				tables[this.table][0] = {type: 'watch'};
 				var tableInfo = tableData['Create Table'].split("\n");
+				//console.log(tableInfo);
 				for (var i = 0; i < tableInfo.length; i ++) {
 					if (tableInfo[i].match(/.*CONSTRAINT.*FOREIGN\sKEY.*ON\sDELETE.*/)) {
 						var matches = tableInfo[i].match(/.*CONSTRAINT\s`(.*?)`\sFOREIGN\sKEY\s\(`(.*?)`\)\sREFERENCES\s`(.*?)`\s\(`(.*?)`\).*/);
 						//console.log(matches);
+						//process.exit();
 
 						//TODO: check all tables for foreign keys to this table then add a trigger to that table,
 						//DONOT FORGET: to check the registration table to see what other foreign table are watching that table and modify registration to deal with it.
