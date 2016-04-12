@@ -86,8 +86,10 @@ var SkConnection = function (_Connection) {
     value: function queryAsync(qry) {
       var _this2 = this;
 
+      var params = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
       return new _bluebird2.default(function (resolve, reject) {
-        _this2.query(qry, function (err, result) {
+        _this2.query(qry, params, function (err, result) {
           if (err) {
             reject(err);
           } else {
@@ -101,8 +103,10 @@ var SkConnection = function (_Connection) {
     value: function getAllAsync(qry) {
       var _this3 = this;
 
+      var params = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
       return new _bluebird2.default(function (resolve, reject) {
-        _this3.query(qry, function (err, result) {
+        _this3.query(qry, params, function (err, result) {
           if (err) {
             reject(err);
           } else {
@@ -116,8 +120,10 @@ var SkConnection = function (_Connection) {
     value: function getRowAsync(qry) {
       var _this4 = this;
 
+      var params = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
       return new _bluebird2.default(function (resolve, reject) {
-        _this4.query(qry, function (err, result) {
+        _this4.query(qry, params, function (err, result) {
           if (err) {
             reject(err);
           } else {
@@ -135,8 +141,10 @@ var SkConnection = function (_Connection) {
     value: function getOneAsync(qry) {
       var _this5 = this;
 
+      var params = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
       return new _bluebird2.default(function (resolve, reject) {
-        _this5.query(qry, function (err, result) {
+        _this5.query(qry, params, function (err, result) {
           if (err) {
             reject(err);
           } else {
@@ -257,6 +265,7 @@ var SkPool = function (_Pool) {
     var _this8 = _possibleConstructorReturn(this, Object.getPrototypeOf(SkPool).call(this, { config: new _PoolConfig2.default(config) }));
 
     _this8.watchList = {};
+    _this8.watchCallback = null;
     return _this8;
   }
 
@@ -269,7 +278,9 @@ var SkPool = function (_Pool) {
       var _this9 = this;
 
       var tables = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+      var cb = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
 
+      this.watchCallback = cb;
       return new _bluebird2.default(function (resolve, reject) {
         _bluebird2.default.resolve().then(function () {
           if (!tables) {
@@ -304,8 +315,12 @@ var SkPool = function (_Pool) {
             return _bluebird2.default.resolve(tables);
           }
         }).then(function (tables) {
-          return _bluebird2.default.each(tables, function (table) {
-            return _this9.watchTable(table);
+          return new _bluebird2.default(function (resolve, reject) {
+            _bluebird2.default.each(tables, function (table) {
+              return _this9.watchTable(table);
+            }).then(function () {
+              resolve();
+            }).catch(reject);
           });
         }).then(function () {
           resolve();
@@ -342,15 +357,27 @@ var SkPool = function (_Pool) {
           _this11.watchList[table] = watcher;
           watcher.startPolling().then(function () {
             watcher.on('insert', function (data) {
+              if (_this11.watchCallback) {
+                _this11.watchCallback('insert', data);
+              }
               _this11.emit('insert', data);
             });
             watcher.on('update', function (data) {
+              if (_this11.watchCallback) {
+                _this11.watchCallback('update', data);
+              }
               _this11.emit('update', data);
             });
             watcher.on('delete', function (data) {
+              if (_this11.watchCallback) {
+                _this11.watchCallback('delete', data);
+              }
               _this11.emit('delete', data);
             });
             watcher.on('error', function (data) {
+              if (_this11.watchCallback) {
+                _this11.watchCallback('error', data);
+              }
               _this11.emit('error', data);
             });
             resolve();

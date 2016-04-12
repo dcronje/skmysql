@@ -49,13 +49,15 @@ var SkTableWatcher = function (_EventEmitter) {
 
 			return new _bluebird2.default(function (resolve, reject) {
 				_this2.pool.getConnectionAsync().then(function (con) {
-					return _this2.checkForRegistrationTable(con);
-				}).then(function (con) {
-					return _this2.checkForWatchTable(con);
-				}).then(function (con) {
-					//TODO:emit events!!!!
-					_this2.timer = setInterval(_this2.checkForUpdates.bind(_this2), _this2.interval);
-					resolve();
+					_this2.checkForRegistrationTable(con).then(function (con) {
+						return _this2.checkForWatchTable(con);
+					}).then(function (con) {
+						//TODO:emit events!!!!
+						_this2.timer = setInterval(_this2.checkForUpdates.bind(_this2), _this2.interval);
+						resolve();
+					}).catch(reject).finally(function () {
+						con.release();
+					});
 				}).catch(reject);
 			});
 		}
