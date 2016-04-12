@@ -23,15 +23,19 @@ class SkTableWatcher extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			this.pool.getConnectionAsync()
 			.then(con => {
-				return this.checkForRegistrationTable(con);
-			})
-			.then(con => {
-				return this.checkForWatchTable(con);
-			})
-			.then(con => {
-				//TODO:emit events!!!!
-				this.timer = setInterval(this.checkForUpdates.bind(this), this.interval);
-				resolve();
+				this.checkForRegistrationTable(con)
+				.then(con => {
+					return this.checkForWatchTable(con);
+				})
+				.then(con => {
+					//TODO:emit events!!!!
+					this.timer = setInterval(this.checkForUpdates.bind(this), this.interval);
+					resolve();
+				})
+				.catch(reject)
+				.finally(() => {
+					con.release();
+				})
 			})
 			.catch(reject);
 		});

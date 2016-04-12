@@ -21,9 +21,9 @@ class SkConnection extends Connection {
     }
   }
 
-  queryAsync(qry) {
+  queryAsync(qry, params = null) {
     return new Promise((resolve, reject) => {
-      this.query(qry, (err, result) => {
+      this.query(qry, params, (err, result) => {
         if (err) {
           reject(err);
         } else {
@@ -33,9 +33,9 @@ class SkConnection extends Connection {
     });
   }
 
-  getAllAsync(qry) {
+  getAllAsync(qry, params = null) {
     return new Promise((resolve, reject) => {
-      this.query(qry, (err, result) => {
+      this.query(qry, params, (err, result) => {
         if (err) {
           reject(err);
         } else {
@@ -45,9 +45,9 @@ class SkConnection extends Connection {
     });
   }
 
-  getRowAsync(qry) {
+  getRowAsync(qry, params = null) {
     return new Promise((resolve, reject) => {
-      this.query(qry, (err, result) => {
+      this.query(qry, params, (err, result) => {
         if (err) {
           reject(err);
         } else {
@@ -61,9 +61,9 @@ class SkConnection extends Connection {
     });
   }
 
-  getOneAsync(qry) {
+  getOneAsync(qry, params = null) {
     return new Promise((resolve, reject) => {
-      this.query(qry, (err, result) => {
+      this.query(qry, params, (err, result) => {
         if (err) {
           reject(err);
         } else {
@@ -164,13 +164,15 @@ class SkPoolConnection extends SkConnection {
 class SkPool extends Pool {
 
   watchList = {};
+  watchCallback = null;
 
   constructor(config) {
     super({config: new PoolConfig(config)});
   }
 
   //TODO: move to promise!!
-  watch(tables = false) {
+  watch(tables = false, cb = null) {
+    this.watchCallback = cb;
     return new Promise((resolve, reject) => {
       Promise.resolve()
       .then(() => {
@@ -212,8 +214,14 @@ class SkPool extends Pool {
         }
       })
       .then(tables => {
-        return Promise.each(tables, (table) => {
-          return this.watchTable(table);
+        return new Promise((resolve, reject) => {
+          Promise.each(tables, (table) => {
+            return this.watchTable(table);
+          })
+          .then(() => {
+            resolve();
+          })
+          .catch(reject);
         })
       })
       .then(() => {
@@ -249,15 +257,27 @@ class SkPool extends Pool {
         watcher.startPolling()
         .then(() => {
           watcher.on('insert', (data) => {
+            if (this.watchCallback) {
+              this.watchCallback('insert', data);
+            }
             this.emit('insert', data);
           });
           watcher.on('update', (data) => {
+            if (this.watchCallback) {
+              this.watchCallback('update', data);
+            }
             this.emit('update', data);
           });
           watcher.on('delete', (data) => {
+            if (this.watchCallback) {
+              this.watchCallback('delete', data);
+            }
             this.emit('delete', data);
           });
           watcher.on('error', (data) => {
+            if (this.watchCallback) {
+              this.watchCallback('error', data);
+            }
             this.emit('error', data);
           });
           resolve();
