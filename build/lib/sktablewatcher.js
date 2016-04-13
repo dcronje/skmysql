@@ -95,15 +95,19 @@ var SkTableWatcher = function (_EventEmitter) {
 							for (var r = 0; r < updates.length; r++) {
 								var oldData = null;
 								var newData = null;
-								if (updates[r].action_type == 'INSERT') {
-									newData = JSON.parse(updates[r].new_data.replace(/\n/g, "\\n"));
-								} else if (updates[r].action_type == 'DELETE') {
-									oldData = JSON.parse(updates[r].old_data.replace(/\n/g, "\\n"));
-								} else {
-									newData = JSON.parse(updates[r].new_data.replace(/\n/g, "\\n"));
-									oldData = JSON.parse(updates[r].old_data.replace(/\n/g, "\\n"));
+								try {
+									if (updates[r].action_type == 'INSERT') {
+										newData = JSON.parse(_this4.escapeJsonString(updates[r].new_data));
+									} else if (updates[r].action_type == 'DELETE') {
+										oldData = JSON.parse(_this4.escapeJsonString(updates[r].old_data));
+									} else {
+										newData = JSON.parse(_this4.escapeJsonString(updates[r].new_data));
+										oldData = JSON.parse(_this4.escapeJsonString(updates[r].old_data));
+									}
+									var connectionData = JSON.parse(updates[r].connection_data);
+								} catch (e) {
+									reject(e);
 								}
-								var connectionData = JSON.parse(updates[r].connection_data);
 								var callbackObject = {
 									table: _this4.table,
 									actionType: updates[r].action_type.toLowerCase(),
@@ -126,6 +130,11 @@ var SkTableWatcher = function (_EventEmitter) {
 					resolve();
 				});
 			});
+		}
+	}, {
+		key: 'escapeJsonString',
+		value: function escapeJsonString(string) {
+			return string.replace(/\n/g, "\\n").replace(/\t/g, "\\t").replace(/\//g, "\\/").replace(/\f/g, "\\f").replace(/\r/g, "\\r");
 		}
 	}, {
 		key: 'getUpdateTime',
