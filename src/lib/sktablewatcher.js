@@ -195,7 +195,7 @@ class SkTableWatcher extends EventEmitter {
 						qry += "\n\tEND IF;";
 						qry += "\n\tINSERT INTO `!skmysql_"+this.table+"_watch`(`action_type`, `action_time`, `new_data`, `connection_data`) VALUES (\n\t\t\t'INSERT', \n\t\t\tNOW(), \n\t\t\tCONCAT('{', ";
 						for (var c = 0; c < cols.length; c ++) {
-							if (cols[c]['Type'] == "timestamp" || cols[c]['Type'] == "datetime" || cols[c]['Type'] == "text" || cols[c]['Type'].indexOf("varchar") != -1) {
+							if (cols[c]['Type'] == "time" || cols[c]['Type'] == "timestamp" || cols[c]['Type'] == "datetime" || cols[c]['Type'] == "text" || cols[c]['Type'].indexOf("varchar") != -1) {
 								qry += "\n\t\t\t\tIF(NEW."+cols[c]['Field']+" IS NULL, '\""+cols[c]['Field']+"\": null', CONCAT('\""+cols[c]['Field']+"\": \"', REPLACE(NEW."+cols[c]['Field']+", '\"', ''), '\"'))";
 							} else {
 								qry += "\n\t\t\t\tIF(NEW."+cols[c]['Field']+" IS NULL, '\""+cols[c]['Field']+"\": null', CONCAT('\""+cols[c]['Field']+"\":', NEW."+cols[c]['Field']+"))";
@@ -227,7 +227,7 @@ class SkTableWatcher extends EventEmitter {
 						qry += "\n\tEND IF;";
 						qry += "\n\tINSERT INTO `!skmysql_"+this.table+"_watch`(`action_type`, `action_time`, `old_data`, `new_data`, `connection_data`) VALUES (\n\t\t\t'UPDATE', \n\t\t\tNOW(), \n\t\t\tCONCAT('{', ";
 						for (var c = 0; c < cols.length; c ++) {
-							if (cols[c]['Type'] == "timestamp" || cols[c]['Type'] == "datetime" || cols[c]['Type'] == "text" || cols[c]['Type'].indexOf("varchar") != -1) {
+							if (cols[c]['Type'] == "time" || cols[c]['Type'] == "timestamp" || cols[c]['Type'] == "datetime" || cols[c]['Type'] == "text" || cols[c]['Type'].indexOf("varchar") != -1) {
 								qry += "\n\t\t\t\tIF(OLD."+cols[c]['Field']+" IS NULL, '\""+cols[c]['Field']+"\": null', CONCAT('\""+cols[c]['Field']+"\": \"', REPLACE(OLD."+cols[c]['Field']+", '\"', ''), '\"'))";
 							} else {
 								qry += "\n\t\t\t\tIF(OLD."+cols[c]['Field']+" IS NULL, '\""+cols[c]['Field']+"\": null', CONCAT('\""+cols[c]['Field']+"\":', OLD."+cols[c]['Field']+"))";
@@ -238,7 +238,7 @@ class SkTableWatcher extends EventEmitter {
 						}
 						qry += ", '}'), \n\t\t\tCONCAT('{', ";
 						for (var c = 0; c < cols.length; c ++) {
-							if (cols[c]['Type'] == "timestamp" || cols[c]['Type'] == "datetime" || cols[c]['Type'] == "text" || cols[c]['Type'].indexOf("varchar") != -1) {
+							if (cols[c]['Type'] == "time" || cols[c]['Type'] == "timestamp" || cols[c]['Type'] == "datetime" || cols[c]['Type'] == "text" || cols[c]['Type'].indexOf("varchar") != -1) {
 								qry += "\n\t\t\t\tIF(NEW."+cols[c]['Field']+" IS NULL, '\""+cols[c]['Field']+"\": null', CONCAT('\""+cols[c]['Field']+"\": \"', REPLACE(NEW."+cols[c]['Field']+", '\"', ''), '\"'))";
 							} else {
 								qry += "\n\t\t\t\tIF(NEW."+cols[c]['Field']+" IS NULL, '\""+cols[c]['Field']+"\": null', CONCAT('\""+cols[c]['Field']+"\":', NEW."+cols[c]['Field']+"))";
@@ -270,7 +270,7 @@ class SkTableWatcher extends EventEmitter {
 						qry += "\n\tEND IF;";
 						qry += "\n\tINSERT INTO `!skmysql_"+this.table+"_watch`(`action_type`, `action_time`, `old_data`, `connection_data`) VALUES (\n\t\t\t'DELETE', \n\t\t\tNOW(), \n\t\t\tCONCAT('{', ";
 						for (var c = 0; c < cols.length; c ++) {
-							if (cols[c]['Type'] == "timestamp" || cols[c]['Type'] == "datetime" || cols[c]['Type'] == "text" || cols[c]['Type'].indexOf("varchar") != -1) {
+							if (cols[c]['Type'] == "time" || cols[c]['Type'] == "timestamp" || cols[c]['Type'] == "datetime" || cols[c]['Type'] == "text" || cols[c]['Type'].indexOf("varchar") != -1) {
 								qry += "\n\t\t\t\tIF(OLD."+cols[c]['Field']+" IS NULL, '\""+cols[c]['Field']+"\": null', CONCAT('\""+cols[c]['Field']+"\": \"', REPLACE(OLD."+cols[c]['Field']+", '\"', ''), '\"'))";
 							} else {
 								qry += "\n\t\t\t\tIF(OLD."+cols[c]['Field']+" IS NULL, '\""+cols[c]['Field']+"\": null', CONCAT('\""+cols[c]['Field']+"\":', OLD."+cols[c]['Field']+"))";
