@@ -185,7 +185,6 @@ class SkTableWatcher extends EventEmitter {
 					.spread((cols, result) => {
 						var qry = "";
 						qry = "CREATE TRIGGER `!skmysql_"+this.table+"_insert_trigger` ";
-						qry += "\nMODIFIES SQL DATA";
 						qry += "\nAFTER INSERT ON `"+this.table+"`";
 						qry += "\n\tFOR EACH ROW BEGIN";
 						qry += "\n\tDECLARE CONTINUE HANDLER FOR 1054";
@@ -218,7 +217,6 @@ class SkTableWatcher extends EventEmitter {
 					.spread((cols, result) => {
 						var qry = "";
 						qry = "\nCREATE TRIGGER `!skmysql_"+this.table+"_update_trigger` ";
-						qry += "\nMODIFIES SQL DATA";
 						qry += "\nAFTER UPDATE ON `"+this.table+"`";
 						qry += "\n\tFOR EACH ROW BEGIN";
 						qry += "\n\tDECLARE CONTINUE HANDLER FOR 1054";
@@ -262,7 +260,6 @@ class SkTableWatcher extends EventEmitter {
 					.spread((cols, result) => {
 						var qry = "";
 						qry = "\nCREATE TRIGGER `!skmysql_"+this.table+"_delete_trigger` ";
-						qry += "\nMODIFIES SQL DATA";
 						qry += "\nBEFORE DELETE ON `"+this.table+"`";
 						qry += "\n\tFOR EACH ROW BEGIN";
 						qry += "\n\tDECLARE CONTINUE HANDLER FOR 1054";

@@ -205,7 +205,6 @@ var SkTableWatcher = function (_EventEmitter) {
 						}).spread(function (cols, result) {
 							var qry = "";
 							qry = "CREATE TRIGGER `!skmysql_" + _this6.table + "_insert_trigger` ";
-							qry += "\nMODIFIES SQL DATA";
 							qry += "\nAFTER INSERT ON `" + _this6.table + "`";
 							qry += "\n\tFOR EACH ROW BEGIN";
 							qry += "\n\tDECLARE CONTINUE HANDLER FOR 1054";
@@ -236,7 +235,6 @@ var SkTableWatcher = function (_EventEmitter) {
 						}).spread(function (cols, result) {
 							var qry = "";
 							qry = "\nCREATE TRIGGER `!skmysql_" + _this6.table + "_update_trigger` ";
-							qry += "\nMODIFIES SQL DATA";
 							qry += "\nAFTER UPDATE ON `" + _this6.table + "`";
 							qry += "\n\tFOR EACH ROW BEGIN";
 							qry += "\n\tDECLARE CONTINUE HANDLER FOR 1054";
@@ -278,7 +276,6 @@ var SkTableWatcher = function (_EventEmitter) {
 						}).spread(function (cols, result) {
 							var qry = "";
 							qry = "\nCREATE TRIGGER `!skmysql_" + _this6.table + "_delete_trigger` ";
-							qry += "\nMODIFIES SQL DATA";
 							qry += "\nBEFORE DELETE ON `" + _this6.table + "`";
 							qry += "\n\tFOR EACH ROW BEGIN";
 							qry += "\n\tDECLARE CONTINUE HANDLER FOR 1054";
