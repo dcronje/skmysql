@@ -545,6 +545,7 @@ exports.SkSanitizer = _skmysqlsanitizer2.default;
 // exports.escapeId = SqlString.escapeId;
 // exports.format   = SqlString.format;
 
+
 //HELPERS
 
 function spliceConnection(array, connection) {
